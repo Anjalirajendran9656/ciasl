@@ -115,8 +115,7 @@
             <p class="text-sm text-gray-400 mt-8">&copy; 2025 Sidharth IT Solutions. All rights reserved.</p>
         </footer>
     </div>
-
-    <script>
+<script>
         // --- GOOGLE SHEET SETUP ---
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTU51pLpAOuaQfjNOfNAryi0r0tOlmktxIhHamzy0wCzp02ng4BKxE7ubddaM2mHCfIbxQgxFkn_mtt/pub?gid=1897546080&single=true&output=csv';
         let questionsData = [];
@@ -147,23 +146,32 @@
             }
         }
 
+        // --- THIS IS THE CORRECTED PARSING FUNCTION ---
         function parseCSV(text) {
             const lines = text.split(/\r?\n/);
             if (lines.length < 2) return [];
-            const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
-            const headers = lines[0].toLowerCase().split(regex).map(h => h.trim().replace(/^"|"$/g, ''));
-            console.log("Headers identified:", headers);
+
+            // Use a simple, reliable split for the header row.
+            const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            console.log("Headers identified:", headers); // For debugging
+
+            const dataRegex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/; // Use the robust regex only for data rows
             const result = [];
+            
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i]) continue;
-                const values = lines[i].split(regex);
+                
+                const values = lines[i].split(dataRegex);
                 const obj = {};
+                
                 for (let j = 0; j < headers.length; j++) {
                     const header = headers[j];
                     const value = (values[j] || '').trim().replace(/^"|"$/g, '').trim();
                     obj[header] = value;
                 }
-                if (obj.question) {
+                
+                // Ensure the question field is not empty before adding
+                if (obj.question && obj.question.trim() !== '') {
                     result.push(obj);
                 }
             }
@@ -249,18 +257,12 @@
             });
             suggestionsDropdown.classList.remove('hidden');
         }
-
-        // --- THIS IS THE CORRECTED FUNCTION ---
+        
         function displayAnswer(qaItem) {
             console.log("Data for found answer:", qaItem);
-
-            // Step 1: Always reset the state first
             viewVideoBtn.classList.add('hidden');
-            
-            // Step 2: Display content based on whether an answer was found
             if (qaItem) {
                 answerText.textContent = qaItem.answer;
-                // Only show the video button if a valid video link exists
                 if (qaItem.video && qaItem.video.trim() !== '') {
                     viewVideoBtn.href = qaItem.video;
                     viewVideoBtn.classList.remove('hidden');
@@ -344,3 +346,4 @@
     </script>
 </body>
 </html>
+   
