@@ -147,21 +147,15 @@
             }
         }
 
-        // --- FIX #1: Made the CSV parsing logic consistent and more robust ---
         function parseCSV(text) {
             const lines = text.split(/\r?\n/);
             if (lines.length < 2) return [];
-
-            // Use the same robust regex for both headers and data
             const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
-            
             const headers = lines[0].toLowerCase().split(regex).map(h => h.trim().replace(/^"|"$/g, ''));
-            console.log("Headers identified:", headers); // Debugging line
-
+            console.log("Headers identified:", headers);
             const result = [];
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i]) continue;
-                
                 const values = lines[i].split(regex);
                 const obj = {};
                 for (let j = 0; j < headers.length; j++) {
@@ -169,14 +163,12 @@
                     const value = (values[j] || '').trim().replace(/^"|"$/g, '').trim();
                     obj[header] = value;
                 }
-                
                 if (obj.question) {
                     result.push(obj);
                 }
             }
             return result;
         }
-
 
         // --- NLP HELPER FUNCTIONS ---
         function removeStopWords(text) {
@@ -216,13 +208,10 @@
             return score + exactMatchBonus + (matchPercentage / 10);
         }
 
-        // --- FIX #2: Increased score threshold to be more selective ---
         async function findAnswer(query) {
             if (!query.trim() || questionsData.length === 0) return null;
             const scoredResults = questionsData.map(item => ({ ...item, score: calculateSimilarity(query, item.question) }));
             const relevantResults = scoredResults.filter(item => item.score > 0).sort((a, b) => b.score - a.score);
-            
-            // Increased score from 5 to 8 for a more confident match
             if (relevantResults.length > 0 && relevantResults[0].score >= 8) {
                 return relevantResults[0];
             }
@@ -261,22 +250,24 @@
             suggestionsDropdown.classList.remove('hidden');
         }
 
+        // --- THIS IS THE CORRECTED FUNCTION ---
         function displayAnswer(qaItem) {
             console.log("Data for found answer:", qaItem);
 
+            // Step 1: Always reset the state first
+            viewVideoBtn.classList.add('hidden');
+            
+            // Step 2: Display content based on whether an answer was found
             if (qaItem) {
                 answerText.textContent = qaItem.answer;
-                // Check if there is a video link. 
+                // Only show the video button if a valid video link exists
                 if (qaItem.video && qaItem.video.trim() !== '') {
                     viewVideoBtn.href = qaItem.video;
                     viewVideoBtn.classList.remove('hidden');
-                } else {
-                    viewVideoBtn.classList.add('hidden');
                 }
             } 
             else {
                 answerText.textContent = "Sorry, I couldn't find an answer to that question. Please try rephrasing it or contact support.";
-                viewVideoBtn.classList.add('hidden');
             }
         }
         
