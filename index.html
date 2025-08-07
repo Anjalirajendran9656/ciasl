@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CIASL Tally Helpdesk - Sidharth IT Solutions</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SUPABASE CLIENT SCRIPT -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -15,13 +13,6 @@
         }
         .logo-img {
             height: 40px;
-        }
-        /* Custom styles for the modal */
-        .modal-backdrop {
-            transition: opacity 0.3s ease;
-        }
-        .modal-content {
-            transition: transform 0.3s ease;
         }
         .question-link {
             cursor: pointer;
@@ -44,7 +35,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Suggestion dropdown styles */
         .suggestions-dropdown {
             position: absolute;
             top: 100%;
@@ -71,23 +61,11 @@
         .suggestion-item:last-child {
             border-bottom: none;
         }
-		.no-image-msg {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #6b7280;
-            font-style: italic;
-            margin-top: 16px;
-        }
-        .image-error {
-            display: none;
-        }
     </style>
 </head>
 <body>
 
     <div class="container mx-auto p-4 md:p-8 max-w-5xl">
-        <!-- Header -->
         <header class="text-center mb-8">
             <img src="https://www.aroundtally.com/wp-content/uploads/2024/07/logo-main.png" alt="Sidharth IT Solutions Logo" class="mx-auto mb-4 logo-img" onerror="this.onerror=null;this.src='https://placehold.co/300x86/ffffff/000000?text=Sidharth+IT+Solutions';">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-800">CIASL Module - Tally AI Helpdesk</h1>
@@ -95,7 +73,6 @@
         </header>
 
         <main>
-            <!-- Search and Answer Section -->
             <section class="bg-white p-6 rounded-lg shadow-md mb-8">
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">Ask a Question</h2>
                 <div class="relative">
@@ -114,33 +91,20 @@
                 <div id="answerContainer" class="bg-gray-50 p-4 rounded-md min-h-[100px]">
                     <h3 class="font-semibold text-gray-800 mb-2">Solution:</h3>
                     <p id="answerText" class="text-gray-700 whitespace-pre-wrap">Please ask a question to see the answer here.</p>
-                    <button id="viewImageBtn" class="hidden mt-4 bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-medium hover:bg-gray-300 transition-colors">
-                        🖼️ View Image
-                    </button>
+                    <a id="viewVideoBtn" href="#" target="_blank" class="hidden mt-4 inline-block bg-red-500 text-white px-4 py-2 rounded-md font-medium hover:bg-red-600 transition-colors">
+                        ▶️ View Video
+                    </a>
                 </div>
             </section>
 
-            <!-- Recent and Frequent Questions -->
-            <section class="grid md:grid-cols-2 gap-8">
-                <!-- Recent Questions -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Recent Questions</h2>
-                    <ul id="recentQuestionsList" class="space-y-3 text-gray-600">
-                        <li><div class="loader"></div>Loading...</li>
-                    </ul>
-                </div>
-
-                <!-- Frequently Asked Questions -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Frequently Asked Questions</h2>
-                    <ul id="faqList" class="space-y-3 text-gray-600">
-                        <li><div class="loader"></div>Loading...</li>
-                    </ul>
-                </div>
+            <section class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Your suggested questions</h2>
+                <ul id="suggestedQuestionsList" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-gray-600">
+                    <li><div class="loader"></div>Loading...</li>
+                </ul>
             </section>
         </main>
 
-        <!-- Footer -->
         <footer class="text-center mt-12 py-6 border-t">
             <h3 class="text-lg font-semibold text-gray-700">Can't Find an Answer?</h3>
             <p class="text-gray-600 mt-1">If you need further assistance, please contact our support team.</p>
@@ -152,28 +116,10 @@
         </footer>
     </div>
 
-    <!-- Image Modal -->
-    <div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 items-center justify-center p-4 modal-backdrop">
-        <div class="bg-white p-4 rounded-lg shadow-xl max-w-3xl w-full max-h-full overflow-auto modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Image Preview</h3>
-                <button id="closeModalBtn" class="text-2xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
-            </div>
-            <img id="modalImage" src="" alt="Help Image" class="w-full h-auto rounded-md" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-            <div class="image-error text-center p-8 text-gray-600">
-                <p class="text-xl font-semibold">Image Not Found</p>
-                <p>The requested image could not be loaded.</p>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // --- SUPABASE SETUP ---
-        const SUPABASE_URL = 'https://vjuvczgbxcxwifjgjpkv.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqdXZjemdieGN4d2lmamdqcGt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEyODA2OTUsImV4cCI6MjA2Njg1NjY5NX0.ZohvZVAdkVn3Rcpeh03tP1uSxdPbgkwr8E0kcIoeoYE';
-
-        const { createClient } = supabase;
-        const dbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // --- GOOGLE SHEET SETUP ---
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTU51pLpAOuaQfjNOfNAryi0r0tOlmktxIhHamzy0wCzp02ng4BKxE7ubddaM2mHCfIbxQgxFkn_mtt/pub?gid=1897546080&single=true&output=csv';
+        let questionsData = [];
 
         // --- DOM ELEMENTS ---
         const questionInput = document.getElementById('questionInput');
@@ -181,16 +127,51 @@
         const submitBtnText = document.getElementById('submitBtnText');
         const submitSpinner = document.getElementById('submitSpinner');
         const answerText = document.getElementById('answerText');
-        const viewImageBtn = document.getElementById('viewImageBtn');
-        const recentQuestionsList = document.getElementById('recentQuestionsList');
-        const faqList = document.getElementById('faqList');
-        const imageModal = document.getElementById('imageModal');
-        const modalImage = document.getElementById('modalImage');
-        const closeModalBtn = document.getElementById('closeModalBtn');
+        const viewVideoBtn = document.getElementById('viewVideoBtn');
+        const suggestedQuestionsList = document.getElementById('suggestedQuestionsList');
         const suggestionsDropdown = document.getElementById('suggestionsDropdown');
 
+        // --- DATA FETCHING ---
+        async function fetchSheetData() {
+            try {
+                const response = await fetch(GOOGLE_SHEET_CSV_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const csvText = await response.text();
+                questionsData = parseCSV(csvText);
+            } catch (error) {
+                console.error('Error fetching or parsing sheet data:', error);
+                answerText.textContent = "Error: Could not load data from the Google Sheet. Please check the URL and sharing settings.";
+                suggestedQuestionsList.innerHTML = '<li>Could not load data.</li>';
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/);
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].toLowerCase().split(',');
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i]) continue;
+                const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+                const values = lines[i].split(regex);
+                const obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    let value = values[j] || '';
+                    value = value.trim().replace(/^"|"$/g, '').trim();
+                    obj[headers[j]] = value;
+                }
+                if (obj.question) {
+                    result.push(obj);
+                }
+            }
+            return result;
+        }
+
         // --- NLP HELPER FUNCTIONS ---
-        
         function removeStopWords(text) {
             const stopWords = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once'];
             const words = text.toLowerCase().split(/\s+/);
@@ -209,10 +190,9 @@
             }
             return keywords;
         }
-
+        
         function calculateSimilarity(query, dbQuestion) {
             const queryKeywords = extractKeywords(query);
-            const dbKeywords = extractKeywords(dbQuestion);
             let score = 0;
             let exactMatchBonus = 0;
             const queryLower = query.toLowerCase();
@@ -230,37 +210,21 @@
         }
 
         async function findAnswer(query) {
-            if (!query.trim()) return null;
-            try {
-                const { data, error } = await dbClient.from('questions').select('*');
-                if (error) {
-                    console.error('Error fetching questions:', error);
-                    return null;
-                }
-                if (!data || data.length === 0) return null;
-                const scoredResults = data.map(item => ({ ...item, score: calculateSimilarity(query, item.question) }));
-                const relevantResults = scoredResults.filter(item => item.score > 0).sort((a, b) => b.score - a.score);
-                if (relevantResults.length > 0 && relevantResults[0].score >= 1) {
-                    return relevantResults[0];
-                }
-                return null;
-            } catch (error) {
-                console.error('Error in findAnswer:', error);
-                return null;
+            if (!query.trim() || questionsData.length === 0) return null;
+            const scoredResults = questionsData.map(item => ({ ...item, score: calculateSimilarity(query, item.question) }));
+            const relevantResults = scoredResults.filter(item => item.score > 0).sort((a, b) => b.score - a.score);
+            
+            // --- FIX 1: Increased score threshold for a better match ---
+            if (relevantResults.length > 0 && relevantResults[0].score >= 5) {
+                return relevantResults[0];
             }
+            return null;
         }
 
         async function getSuggestions(query) {
-            if (!query || query.length < 2) return [];
-            try {
-                const { data, error } = await dbClient.from('questions').select('id, question');
-                if (error || !data) return [];
-                const scored = data.map(item => ({ ...item, score: calculateSimilarity(query, item.question) }));
-                return scored.filter(item => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);
-            } catch (error) {
-                console.error('Error getting suggestions:', error);
-                return [];
-            }
+            if (!query || query.length < 2 || questionsData.length === 0) return [];
+            const scored = questionsData.map(item => ({ ...item, score: calculateSimilarity(query, item.question) }));
+            return scored.filter(item => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);
         }
 
         async function showSuggestions() {
@@ -290,77 +254,39 @@
         }
 
         function displayAnswer(qaItem) {
+            // --- FIX 2: Added console.log for debugging ---
+            // Press F12 in your browser to see this output in the "Console" tab.
+            console.log("Data for found answer:", qaItem);
+
             if (qaItem) {
                 answerText.textContent = qaItem.answer;
-                if (qaItem.image) {
-                    viewImageBtn.classList.remove('hidden');
-                    viewImageBtn.innerHTML = '🖼️ View Image';
-                    viewImageBtn.className = 'mt-4 bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-medium hover:bg-gray-300 transition-colors';
-                    viewImageBtn.onclick = () => showImageModal(qaItem.image);
-                    viewImageBtn.disabled = false;
+                // Check if there is a video link. Make sure the header in your sheet is exactly 'video' (lowercase).
+                if (qaItem.video) {
+                    viewVideoBtn.href = qaItem.video;
+                    viewVideoBtn.classList.remove('hidden');
                 } else {
-                    viewImageBtn.classList.remove('hidden');
-                    viewImageBtn.innerHTML = '🖼️ Image not available';
-                    viewImageBtn.className = 'mt-4 no-image-msg';
-                    viewImageBtn.onclick = null;
-                    viewImageBtn.style.cursor = 'default';
-                    viewImageBtn.disabled = true;
+                    viewVideoBtn.classList.add('hidden');
                 }
-            } else {
+            } 
+            else {
                 answerText.textContent = "Sorry, I couldn't find an answer to that question. Please try rephrasing it or contact support.";
-                viewImageBtn.classList.add('hidden');
+                viewVideoBtn.classList.add('hidden');
             }
         }
         
-        async function populateRecentQuestions() {
-            try {
-                const { data, error } = await dbClient.from('questions').select('id, question').not('last_asked_at', 'is', null).order('last_asked_at', { ascending: false }).limit(5);
-                if (error) {
-                    console.error('Error fetching recent questions:', error);
-                    recentQuestionsList.innerHTML = '<li class="text-gray-500">Could not load recent questions.</li>';
-                    return;
-                }
-                if (data && data.length > 0) {
-                    recentQuestionsList.innerHTML = '';
-                    data.forEach((item, index) => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<span class="text-gray-400">${index + 1}.</span> ${item.question}`;
-                        li.className = 'question-link hover:text-blue-600 cursor-pointer transition-colors';
-                        li.onclick = () => handleQuestionClick(item.question);
-                        recentQuestionsList.appendChild(li);
-                    });
-                } else {
-                    recentQuestionsList.innerHTML = '<li class="text-gray-500 italic">No questions asked yet.</li>';
-                }
-            } catch (error) {
-                console.error('Error in populateRecentQuestions:', error);
-                recentQuestionsList.innerHTML = '<li class="text-gray-500">Error loading recent questions.</li>';
-            }
-        }
-
-        async function populateFAQ() {
-            try {
-                const { data, error } = await dbClient.from('questions').select('id, question, count').order('count', { ascending: false }).gt('count', 0).limit(5);
-                if (error) {
-                    console.error('Error fetching FAQ:', error);
-                    faqList.innerHTML = '<li class="text-gray-500">Could not load FAQ.</li>';
-                    return;
-                }
-                if (data && data.length > 0) {
-                    faqList.innerHTML = '';
-                    data.forEach((item, index) => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<span class="text-gray-400">${index + 1}.</span> ${item.question} <span class="text-xs text-gray-400">(${item.count})</span>`;
-                        li.className = 'question-link hover:text-blue-600 cursor-pointer transition-colors';
-                        li.onclick = () => handleQuestionClick(item.question);
-                        faqList.appendChild(li);
-                    });
-                } else {
-                    faqList.innerHTML = '<li class="text-gray-500 italic">No frequently asked questions yet.</li>';
-                }
-            } catch (error) {
-                console.error('Error in populateFAQ:', error);
-                faqList.innerHTML = '<li class="text-gray-500">Error loading FAQ.</li>';
+        function populateSuggestedQuestions() {
+            if (questionsData.length > 0) {
+                suggestedQuestionsList.innerHTML = '';
+                const suggested = questionsData.slice(0, 8);
+                suggested.forEach((item) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="text-blue-500 mr-2">&#8227;</span>${item.question}`;
+                    li.className = 'question-link hover:text-blue-600 cursor-pointer transition-colors';
+                    li.onclick = () => handleQuestionClick(item.question);
+                    suggestedQuestionsList.appendChild(li);
+                });
+            } else {
+                suggestedQuestionsList.innerHTML = '<li class="text-gray-500 italic md:col-span-2">No questions found.</li>';
             }
         }
 
@@ -374,18 +300,10 @@
             submitBtnText.classList.add('hidden');
             submitSpinner.classList.remove('hidden');
             submitBtn.disabled = true;
+
             try {
                 const result = await findAnswer(query);
                 displayAnswer(result);
-                if (result) {
-                    const newCount = (result.count || 0) + 1;
-                    const { error } = await dbClient.from('questions').update({ count: newCount, last_asked_at: new Date().toISOString() }).eq('id', result.id);
-                    if (error) console.error('Error updating count:', error);
-                    setTimeout(() => {
-                        populateRecentQuestions();
-                        populateFAQ();
-                    }, 100);
-                }
             } catch (error) {
                 console.error('Error in handleSearch:', error);
                 answerText.textContent = "An error occurred while searching. Please try again.";
@@ -402,84 +320,30 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
-        function showImageModal(imageUrl) {
-            // Reset state before showing
-            const errorDiv = imageModal.querySelector('.image-error');
-            modalImage.style.display = 'block';
-            if (errorDiv) {
-                errorDiv.style.display = 'none';
-            }
-
-            modalImage.src = imageUrl;
-            imageModal.classList.remove('hidden');
-            imageModal.classList.add('flex');
-
-            // Animate in
-            setTimeout(() => {
-                imageModal.style.opacity = '1';
-                const modalContent = imageModal.querySelector('.modal-content');
-                if (modalContent) {
-                    modalContent.style.transform = 'scale(1)';
-                }
-            }, 10);
-        }
-
-        function hideImageModal() {
-            imageModal.style.opacity = '0';
-            const modalContent = imageModal.querySelector('.modal-content');
-            if (modalContent) {
-                modalContent.style.transform = 'scale(0.95)';
-            }
-            setTimeout(() => {
-                imageModal.classList.add('hidden');
-                imageModal.classList.remove('flex');
-                imageModal.style.opacity = '';
-                if (modalContent) {
-                    modalContent.style.transform = '';
-                }
-            }, 300);
-        }
-
         // --- EVENT LISTENERS ---
         submitBtn.addEventListener('click', handleSearch);
-        
-        questionInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleSearch();
-            }
-        });
-        
+        questionInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSearch());
         let suggestionTimeout;
         questionInput.addEventListener('input', () => {
             clearTimeout(suggestionTimeout);
             suggestionTimeout = setTimeout(showSuggestions, 300);
         });
-        
         document.addEventListener('click', (e) => {
             if (!questionInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
                 suggestionsDropdown.classList.add('hidden');
             }
         });
-        
-        closeModalBtn.addEventListener('click', hideImageModal);
-        imageModal.addEventListener('click', (e) => {
-            if (e.target === imageModal) {
-                hideImageModal();
-            }
-        });
 
         // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
-                answerText.textContent = "Supabase is not configured. Please update the SUPABASE_URL and SUPABASE_ANON_KEY in the script.";
-                recentQuestionsList.innerHTML = '<li>Supabase not configured.</li>';
-                faqList.innerHTML = '<li>Supabase not configured.</li>';
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL === 'PASTE_YOUR_PUBLISHED_GOOGLE_SHEET_URL_HERE') {
+                answerText.textContent = "Google Sheet URL is not configured. Please update the GOOGLE_SHEET_CSV_URL in the script.";
+                suggestedQuestionsList.innerHTML = '<li>Sheet not configured.</li>';
             } else {
-                populateFAQ();
-                populateRecentQuestions();
+                await fetchSheetData();
+                populateSuggestedQuestions();
             }
         });
-
     </script>
 </body>
 </html>
