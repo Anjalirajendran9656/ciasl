@@ -147,29 +147,36 @@
             }
         }
 
+        // --- FIX #1: Made the CSV parsing logic consistent and more robust ---
         function parseCSV(text) {
             const lines = text.split(/\r?\n/);
             if (lines.length < 2) return [];
 
-            const headers = lines[0].toLowerCase().split(',');
-            const result = [];
+            // Use the same robust regex for both headers and data
+            const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+            
+            const headers = lines[0].toLowerCase().split(regex).map(h => h.trim().replace(/^"|"$/g, ''));
+            console.log("Headers identified:", headers); // Debugging line
 
+            const result = [];
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i]) continue;
-                const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+                
                 const values = lines[i].split(regex);
                 const obj = {};
                 for (let j = 0; j < headers.length; j++) {
-                    let value = values[j] || '';
-                    value = value.trim().replace(/^"|"$/g, '').trim();
-                    obj[headers[j]] = value;
+                    const header = headers[j];
+                    const value = (values[j] || '').trim().replace(/^"|"$/g, '').trim();
+                    obj[header] = value;
                 }
+                
                 if (obj.question) {
                     result.push(obj);
                 }
             }
             return result;
         }
+
 
         // --- NLP HELPER FUNCTIONS ---
         function removeStopWords(text) {
@@ -209,13 +216,14 @@
             return score + exactMatchBonus + (matchPercentage / 10);
         }
 
+        // --- FIX #2: Increased score threshold to be more selective ---
         async function findAnswer(query) {
             if (!query.trim() || questionsData.length === 0) return null;
             const scoredResults = questionsData.map(item => ({ ...item, score: calculateSimilarity(query, item.question) }));
             const relevantResults = scoredResults.filter(item => item.score > 0).sort((a, b) => b.score - a.score);
             
-            // --- FIX 1: Increased score threshold for a better match ---
-            if (relevantResults.length > 0 && relevantResults[0].score >= 5) {
+            // Increased score from 5 to 8 for a more confident match
+            if (relevantResults.length > 0 && relevantResults[0].score >= 8) {
                 return relevantResults[0];
             }
             return null;
@@ -254,14 +262,12 @@
         }
 
         function displayAnswer(qaItem) {
-            // --- FIX 2: Added console.log for debugging ---
-            // Press F12 in your browser to see this output in the "Console" tab.
             console.log("Data for found answer:", qaItem);
 
             if (qaItem) {
                 answerText.textContent = qaItem.answer;
-                // Check if there is a video link. Make sure the header in your sheet is exactly 'video' (lowercase).
-                if (qaItem.video) {
+                // Check if there is a video link. 
+                if (qaItem.video && qaItem.video.trim() !== '') {
                     viewVideoBtn.href = qaItem.video;
                     viewVideoBtn.classList.remove('hidden');
                 } else {
